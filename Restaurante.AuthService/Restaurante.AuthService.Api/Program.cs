@@ -2,6 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 // Importaciones de tus capas
 using Restaurante.AuthService.Application.Interfaces;
@@ -28,7 +30,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 // Usamos AddHttpClient porque MongoSyncService usa un HttpClient por dentro
-builder.Services.AddHttpClient<ISyncService, MongoSyncService>(); 
+builder.Services.AddHttpClient<ISyncService, MongoSyncService>();
 
 // 3.3. Servicios de Aplicación (Casos de uso)
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -54,7 +56,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // 5. Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+});
 
 var app = builder.Build();
 
@@ -67,7 +77,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -84,14 +94,14 @@ using (var scope = app.Services.CreateScope())
         try
         {
             Console.WriteLine($"Intentando conectar a AuthDB (Intento {retries + 1}/10)...");
-            context.Database.EnsureCreated(); 
+            context.Database.EnsureCreated();
             Console.WriteLine("Base de datos de AuthDB lista.");
             break;
         }
         catch (Exception ex)
         {
             retries++;
-            if (retries >= 10) 
+            if (retries >= 10)
             {
                 Console.WriteLine($"Error crítico: No se pudo conectar a AuthDB. {ex.Message}");
                 throw;
