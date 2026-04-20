@@ -15,6 +15,11 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    /// <summary>
+    /// Registra un nuevo usuario.
+    /// </summary>
+    /// <param name="request">DTO con los datos del usuario a registrar.</param>
+    /// <returns>Devuelve un mensaje de éxito o error.</returns>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto request)
     {
@@ -29,6 +34,11 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Autentica a un usuario y devuelve un token JWT.
+    /// </summary>
+    /// <param name="request">DTO con los datos del usuario a autenticar.</param>
+    /// <returns>Devuelve un token JWT.</returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto request)
     {
