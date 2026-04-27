@@ -23,7 +23,7 @@ public class AuthService : IAuthService
         _syncService = syncService;
     }
 
-    public async Task<string> LoginAsync(LoginDto request)
+    public async Task<AuthResponseDto> LoginAsync(LoginDto request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
 
@@ -37,7 +37,19 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("El usuario está desactivado.");
         }
 
-        return _jwtProvider.GenerateToken(user);
+        var token = _jwtProvider.GenerateToken(user);
+        
+        return new AuthResponseDto 
+        {
+            Token = token,
+            UserDetails = new UserDetailsDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Role = user.Role,
+                MongoId = user.MongoId
+            }
+        };
     }
 
     public async Task<bool> RegisterAsync(RegisterDto request)
