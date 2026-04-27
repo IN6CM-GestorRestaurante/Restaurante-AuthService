@@ -18,6 +18,16 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Controladores
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3001")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // 2. Base de Datos
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
@@ -76,6 +86,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
