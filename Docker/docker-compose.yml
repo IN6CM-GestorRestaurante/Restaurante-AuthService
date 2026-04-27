@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  restaurante-db:
+    image: postgres:15-alpine
+    container_name: restaurante-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: restaurante_auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - restaurante_db_data:/var/lib/postgresql/data
+
+  restaurante-auth-service:
+    build:
+      context: ./Restaurante-AuthService/Restaurante.AuthService
+      dockerfile: Dockerfile
+    container_name: restaurante-auth-service
+    ports:
+      - "5065:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__PostgresConnection=Host=restaurante-db;Database=restaurante_auth_db;Username=postgres;Password=admin
+      - Jwt__Key=Restaurante_Super_Secret_Key_2026_DotNet8
+      - Jwt__Issuer=auth-service
+      - Jwt__Audience=restaurante-app
+    depends_on:
+      - restaurante-db
+
+  restaurante-client-admin:
+    build:
+      context: ./Restaurante-Client-Admin
+      dockerfile: Dockerfile
+      args:
+        - VITE_AUTH_URL=http://localhost:5065
+        - VITE_ADMIN_URL=http://localhost:3001
+    container_name: restaurante-client-admin
+    ports:
+      - "3001:80"
+    environment:
+      - VITE_AUTH_URL=http://localhost:5065
+      - VITE_ADMIN_URL=http://localhost:3001
+
+volumes:
+  restaurante_db_data:
