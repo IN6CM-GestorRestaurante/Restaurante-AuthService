@@ -34,11 +34,12 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var token = await _authService.LoginAsync(request);
+            var authResponse = await _authService.LoginAsync(request);
             return Ok(new
             {
                 message = "Login exitoso",
-                token = token
+                token = authResponse.Token,
+                userDetails = authResponse.UserDetails
             });
         }
         catch (UnauthorizedAccessException ex)
