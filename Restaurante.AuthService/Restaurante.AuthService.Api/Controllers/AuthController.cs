@@ -4,7 +4,7 @@ using Restaurante.AuthService.Application.Interfaces;
 
 namespace Restaurante.AuthService.Api.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -39,7 +39,6 @@ public class AuthController : ControllerBase
             {
                 message = "Login exitoso",
                 token = token
-                // Para devolver user.Id tendrías que cambiar la firma de LoginAsync a devolver un DTO en lugar de un string, o extraerlo del token en el cliente.
             });
         }
         catch (UnauthorizedAccessException ex)
