@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurante.AuthService.Domain.Entities;
 
-namespace Restaurante.AuthService.Infrastructure.Data
-{
+namespace Restaurante.AuthService.Infrastructure.Data;
     public class AuthDbContext : DbContext
     {
         public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) { }
@@ -18,4 +17,3 @@ namespace Restaurante.AuthService.Infrastructure.Data
                 .IsUnique();
         }
     }
-}

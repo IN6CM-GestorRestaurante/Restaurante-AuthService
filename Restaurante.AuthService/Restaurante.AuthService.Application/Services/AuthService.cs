@@ -1,3 +1,4 @@
+using System.Globalization;
 using Restaurante.AuthService.Application.DTOs;
 using Restaurante.AuthService.Application.Interfaces;
 using Restaurante.AuthService.Domain.Entities;
@@ -23,11 +24,11 @@ public class AuthService : IAuthService
         _syncService = syncService;
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginDto request)
+    public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        var user = await _userRepository.GetByEmailAsync(loginDto.Email);
 
-        if (user == null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        if (user == null || !_passwordHasher.Verify(loginDto.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Credenciales incorrectas.");
         }
@@ -52,9 +53,9 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<bool> RegisterAsync(RegisterDto request)
+    public async Task<bool> RegisterAsync(RegisterDto registerDto)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+        var existingUser = await _userRepository.GetByEmailAsync(registerDto.Email);
         if (existingUser != null)
         {
             throw new InvalidOperationException("El correo ya está registrado.");
@@ -62,9 +63,10 @@ public class AuthService : IAuthService
 
         var newUser = new User
         {
-            Email = request.Email,
-            PasswordHash = _passwordHasher.Hash(request.Password),
-            Role = request.Role.ToUpper()
+            Email = registerDto.Email,
+            PasswordHash = _passwordHasher.Hash(registerDto.Password),
+            Role = registerDto.Role.ToUpper(new CultureInfo("en-US")),
+            IsActive = true
         };
 
         await _userRepository.AddAsync(newUser);
