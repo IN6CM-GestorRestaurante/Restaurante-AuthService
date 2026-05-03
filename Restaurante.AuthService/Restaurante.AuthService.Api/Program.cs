@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 // Importaciones de tus capas
@@ -47,8 +46,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 // 4. Configuración de JWT (Para que la API sepa cómo VALIDAR tokens entrantes)
 var jwtKey = builder.Configuration["Jwt:Key"];
-if (string.IsNullOrEmpty(jwtKey)) throw new ArgumentNullException("Jwt Key is missing in appsettings.json");
-
+if (string.IsNullOrEmpty(jwtKey)) throw new ArgumentNullException(nameof(jwtKey), "Jwt Key is missing in configuration");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -99,21 +97,26 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AuthDbContext>();
+    var passwordHasher = services.GetRequiredService<IPasswordHasher>();
+    var configuration = services.GetRequiredService<IConfiguration>();
 
-    int retries = 0;
-    while (retries < 10)
+    int retryCount = 0;
+    while (retryCount < 10)
     {
         try
         {
-            Console.WriteLine($"Intentando conectar a AuthDB (Intento {retries + 1}/10)...");
+            Console.WriteLine($"Intentando conectar a AuthDB (Intento {retryCount + 1}/10)...");
             context.Database.EnsureCreated();
-            Console.WriteLine("Base de datos de AuthDB lista.");
+            
+            await DataSeeder.SeedAsync(context, passwordHasher, configuration);
+
+            Console.WriteLine("Base de datos de AuthDB lista y seeder ejecutado.");
             break;
         }
         catch (Exception ex)
         {
-            retries++;
-            if (retries >= 10)
+            retryCount++;
+            if (retryCount >= 10)
             {
                 Console.WriteLine($"Error crítico: No se pudo conectar a AuthDB. {ex.Message}");
                 throw;
