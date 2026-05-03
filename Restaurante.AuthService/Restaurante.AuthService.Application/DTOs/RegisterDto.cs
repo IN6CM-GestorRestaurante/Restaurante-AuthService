@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Restaurante.AuthService.Application.DTOs
-{
+namespace Restaurante.AuthService.Application.DTOs;
+
     public class RegisterDto
     {
         [Required(ErrorMessage = "El email es obligatorio")]
@@ -14,4 +14,3 @@ namespace Restaurante.AuthService.Application.DTOs
 
         public string Role { get; set; } = "WAITER"; // Por defecto, asignamos rol de mesero
     }
-}

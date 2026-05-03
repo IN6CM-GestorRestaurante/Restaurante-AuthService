@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Restaurante.AuthService.Application.DTOs
-{
+namespace Restaurante.AuthService.Application.DTOs;
+
     public class LoginDto
     {
         [Required(ErrorMessage = "El email es obligatorio")]
@@ -11,4 +11,3 @@ namespace Restaurante.AuthService.Application.DTOs
         [Required(ErrorMessage = "La contraseña es obligatoria")]
         public string Password { get; set; } = string.Empty;
     }
-}

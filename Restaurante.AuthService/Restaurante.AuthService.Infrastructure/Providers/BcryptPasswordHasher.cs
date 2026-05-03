@@ -1,5 +1,4 @@
 using Restaurante.AuthService.Application.Interfaces;
-using BCrypt.Net;
 
 namespace Restaurante.AuthService.Infrastructure.Providers;
 
