@@ -1,5 +1,5 @@
-namespace Restaurante.AuthService.Application.DTOs
-{
+namespace Restaurante.AuthService.Application.DTOs;
+
     public class AuthResponseDto
     {
         public string Token { get; set; } = string.Empty;
@@ -13,4 +13,3 @@ namespace Restaurante.AuthService.Application.DTOs
         public string Role { get; set; } = string.Empty;
         public string? MongoId { get; set; }
     }
-}

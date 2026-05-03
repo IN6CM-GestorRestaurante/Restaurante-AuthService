@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Restaurante.AuthService.Domain.Entities
-{
+namespace Restaurante.AuthService.Domain.Entities;
+
     [Table("users")]
     public class User
     {
@@ -32,4 +32,3 @@ namespace Restaurante.AuthService.Domain.Entities
         [Column("mongo_id")]
         public string? MongoId { get; set; } 
     }
-}
