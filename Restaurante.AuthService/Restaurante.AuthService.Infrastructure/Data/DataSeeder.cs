@@ -23,7 +23,7 @@ namespace Restaurante.AuthService.Infrastructure.Data
                 {
                     Email = "admin@restaurante.local",
                     PasswordHash = passwordHasher.Hash(adminPassword),
-                    Role = "ADMIN",
+                    Role = "ADMIN_ROLE",
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 };
