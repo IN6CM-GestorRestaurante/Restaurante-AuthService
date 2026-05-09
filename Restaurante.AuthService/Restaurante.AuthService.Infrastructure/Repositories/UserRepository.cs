@@ -59,6 +59,25 @@ public class UserRepository : IUserRepository
         return Task.CompletedTask;
     }
 
+    public async Task<(List<User> Users, int TotalCount)> GetAllAsync(int page, int limit, string? companyMongoId = null)
+    {
+        var query = _context.Users.AsQueryable();
+
+        if (!string.IsNullOrEmpty(companyMongoId))
+        {
+            query = query.Where(u => u.CompanyMongoId == companyMongoId);
+        }
+
+        var totalCount = await query.CountAsync();
+        var users = await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .ToListAsync();
+
+        return (users, totalCount);
+    }
+
     public async Task SaveChangesAsync()
     {
         // Impacta los cambios reales en PostgreSQL
