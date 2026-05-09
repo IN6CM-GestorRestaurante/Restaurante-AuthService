@@ -205,4 +205,48 @@ public class AuthService : IAuthService
 
         return true;
     }
+
+    public async Task<User?> ValidateUserAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || !user.IsActive) return null;
+        return user;
+    }
+
+    public async Task<(List<User> Users, int TotalCount)> GetUsersAsync(int page, int limit, string? companyMongoId = null)
+    {
+        return await _userRepository.GetAllAsync(page, limit, companyMongoId);
+    }
+
+    public async Task<bool> UpdateUserRoleAsync(int userId, string newRole, string requesterRole, string? requesterCompanyId)
+    {
+        var allowedRoles = new[] { "SUPER_ADMIN", "COMPANY_ADMIN", "BRANCH_MANAGER", "WAITER", "CHEF", "CASHIER", "RECEPTIONIST", "CLIENT" };
+        newRole = newRole.ToUpper(CultureInfo.InvariantCulture);
+
+        if (!allowedRoles.Contains(newRole))
+        {
+            throw new InvalidOperationException($"El rol '{newRole}' no es válido.");
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) throw new InvalidOperationException("Usuario no encontrado.");
+
+        // Solo SUPER_ADMIN puede asignar COMPANY_ADMIN
+        if (newRole == "COMPANY_ADMIN" && requesterRole != "SUPER_ADMIN")
+        {
+            throw new UnauthorizedAccessException("Solo un SUPER_ADMIN puede asignar el rol COMPANY_ADMIN.");
+        }
+
+        // Si es COMPANY_ADMIN, solo puede editar usuarios de su misma compañía
+        if (requesterRole == "COMPANY_ADMIN" && user.CompanyMongoId != requesterCompanyId)
+        {
+            throw new UnauthorizedAccessException("No tienes permiso para modificar usuarios de otra compañía.");
+        }
+
+        user.Role = newRole;
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveChangesAsync();
+
+        return true;
+    }
 }

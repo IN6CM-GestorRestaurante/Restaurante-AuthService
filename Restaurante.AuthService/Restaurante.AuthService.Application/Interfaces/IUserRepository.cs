@@ -12,5 +12,6 @@ public interface IUserRepository
     Task<User?> GetByRefreshTokenAsync(string token);
     Task AddAsync(User user);
     Task UpdateAsync(User user);
+    Task<(List<User> Users, int TotalCount)> GetAllAsync(int page, int limit, string? companyMongoId = null);
     Task SaveChangesAsync();
 }
