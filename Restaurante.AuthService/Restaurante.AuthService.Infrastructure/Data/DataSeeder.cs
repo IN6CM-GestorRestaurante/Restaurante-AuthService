@@ -21,10 +21,12 @@ namespace Restaurante.AuthService.Infrastructure.Data
 
                 var adminUser = new User
                 {
+                    Username = "superadmin",
                     Email = "admin@restaurante.local",
                     PasswordHash = passwordHasher.Hash(adminPassword),
                     Role = "ADMIN_ROLE",
                     IsActive = true,
+                    EmailVerified = true,
                     CreatedAt = DateTime.UtcNow
                 };
 

@@ -15,6 +15,11 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
+    public async Task<User?> GetByIdAsync(int id)
+    {
+        return await _context.Users.FindAsync(id);
+    }
+
     public async Task<User?> GetByEmailAsync(string email)
     {
         // Entity Framework va a la base de datos a buscar el usuario
@@ -22,10 +27,36 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
+    public async Task<User?> GetByUsernameAsync(string username)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+    }
+
+    public async Task<User?> GetByEmailVerificationTokenAsync(string token)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+    }
+
+    public async Task<User?> GetByPasswordResetTokenAsync(string token)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token);
+    }
+
+    public async Task<User?> GetByRefreshTokenAsync(string token)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == token);
+    }
+
     public async Task AddAsync(User user)
     {
         // Agrega la entidad a la memoria de EF
         await _context.Users.AddAsync(user);
+    }
+
+    public Task UpdateAsync(User user)
+    {
+        _context.Users.Update(user);
+        return Task.CompletedTask;
     }
 
     public async Task SaveChangesAsync()
