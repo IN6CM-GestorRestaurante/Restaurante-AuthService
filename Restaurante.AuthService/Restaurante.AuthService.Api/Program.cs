@@ -15,13 +15,15 @@ using Restaurante.AuthService.Infrastructure.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Controladores
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3001", "http://localhost:5173")
+        var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -99,18 +101,19 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<AuthDbContext>();
     var passwordHasher = services.GetRequiredService<IPasswordHasher>();
     var configuration = services.GetRequiredService<IConfiguration>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
     int retryCount = 0;
     while (retryCount < 10)
     {
         try
         {
-            Console.WriteLine($"Intentando conectar a AuthDB (Intento {retryCount + 1}/10)...");
+            logger.LogInformation($"Intentando conectar a AuthDB (Intento {retryCount + 1}/10)...");
             context.Database.EnsureCreated();
             
             await DataSeeder.SeedAsync(context, passwordHasher, configuration);
 
-            Console.WriteLine("Base de datos de AuthDB lista y seeder ejecutado.");
+            logger.LogInformation("Base de datos de AuthDB lista y seeder ejecutado.");
             break;
         }
         catch (Exception ex)
@@ -118,10 +121,10 @@ using (var scope = app.Services.CreateScope())
             retryCount++;
             if (retryCount >= 10)
             {
-                Console.WriteLine($"Error crítico: No se pudo conectar a AuthDB. {ex.Message}");
+                logger.LogError($"Error crítico: No se pudo conectar a AuthDB. {ex.Message}");
                 throw;
             }
-            Console.WriteLine($"Postgres (AuthDB) no responde. Reintentando en 3s... ({ex.Message})");
+            logger.LogWarning($"Postgres (AuthDB) no responde. Reintentando en 3s... ({ex.Message})");
             Thread.Sleep(3000);
         }
     }
