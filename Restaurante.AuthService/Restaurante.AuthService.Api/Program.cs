@@ -45,6 +45,7 @@ builder.Services.AddHttpClient<ISyncService, MongoSyncService>();
 
 // 3.3. Servicios de Aplicación (Casos de uso)
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // 4. Configuración de JWT (Para que la API sepa cómo VALIDAR tokens entrantes)
 var jwtKey = builder.Configuration["Jwt:Key"];
