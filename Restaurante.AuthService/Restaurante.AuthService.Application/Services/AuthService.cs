@@ -65,7 +65,7 @@ public class AuthService : IAuthService
         {
             Email = registerDto.Email,
             PasswordHash = _passwordHasher.Hash(registerDto.Password),
-            Role = registerDto.Role.ToUpper(new CultureInfo("en-US")),
+            Role = "COMPANY_ADMIN",
             IsActive = true
         };
 
