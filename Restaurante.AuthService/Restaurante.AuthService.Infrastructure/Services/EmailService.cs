@@ -24,8 +24,7 @@ public class EmailService : IEmailService
     private async Task SendEmailAsync(string to, string subject, string htmlBody)
     {
         var smtpSettings = _configuration.GetSection("SmtpSettings");
-        var enabled = smtpSettings.GetValue<bool>("Enabled");
-
+        var enabled = Convert.ToBoolean(smtpSettings["Enabled"]);
         if (!enabled)
         {
             _logger.LogInformation("Envío de correo deshabilitado (SmtpSettings:Enabled = false). Destinatario: {To}, Asunto: {Subject}", to, subject);
@@ -35,8 +34,8 @@ public class EmailService : IEmailService
         try
         {
             var message = new MimeMessage();
-            var fromEmail = smtpSettings["FromEmail"] ?? "noreply@restaurante.app";
-            var fromName = smtpSettings["FromName"] ?? "Gestor Restaurante";
+            var fromEmail = smtpSettings["FromEmail"] ?? "olivermerida765@gmail.com";
+            var fromName = smtpSettings["FromName"] ?? "Restaurant-Auth-System";
 
             message.From.Add(new MailboxAddress(fromName, fromEmail));
             message.To.Add(new MailboxAddress("", to));
@@ -50,7 +49,7 @@ public class EmailService : IEmailService
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
             var host = smtpSettings["Host"];
-            var port = smtpSettings.GetValue<int>("Port");
+            var port = Convert.ToInt32(smtpSettings["Port"]);
             var username = smtpSettings["Username"];
             var password = smtpSettings["Password"];
 
