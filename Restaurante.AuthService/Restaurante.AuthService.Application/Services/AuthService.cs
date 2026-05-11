@@ -12,7 +12,6 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtProvider _jwtProvider;
-    private readonly ISyncService _syncService;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
 
@@ -20,14 +19,12 @@ public class AuthService : IAuthService
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         IJwtProvider jwtProvider,
-        ISyncService syncService,
         IEmailService emailService,
         IConfiguration configuration)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _jwtProvider = jwtProvider;
-        _syncService = syncService;
         _emailService = emailService;
         _configuration = configuration;
     }
@@ -83,7 +80,7 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<bool> RegisterAsync(RegisterDto registerDto)
+    public async Task<RegisterResponseDto> RegisterAsync(RegisterDto registerDto)
     {
         var existingUser = await _userRepository.GetByEmailAsync(registerDto.Email);
         if (existingUser != null)
@@ -94,10 +91,13 @@ public class AuthService : IAuthService
         var newUser = new User
         {
             Email = registerDto.Email,
+            Username = registerDto.Username,
             PasswordHash = _passwordHasher.Hash(registerDto.Password),
-            Role = "COMPANY_ADMIN",
+            Role = string.IsNullOrEmpty(registerDto.Role) ? "COMPANY_ADMIN" : registerDto.Role,
             IsActive = false,
             EmailVerified = false,
+            CompanyMongoId = registerDto.CompanyMongoId,
+            MongoId = registerDto.MongoId,
             EmailVerificationToken = TokenGenerator.GenerateSecureToken(),
             EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
         };
@@ -107,9 +107,13 @@ public class AuthService : IAuthService
 
         Task.Run(() => _emailService.SendEmailVerificationAsync(newUser.Email, newUser.Username ?? newUser.Email, newUser.EmailVerificationToken));
 
-        await _syncService.SyncUserToMongoAsync(newUser);
-
-        return true;
+        return new RegisterResponseDto
+        {
+            Success = true,
+            AuthUserId = newUser.Id,
+            Email = newUser.Email,
+            Message = "Credenciales creadas. Email de verificación enviado."
+        };
     }
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
@@ -161,7 +165,7 @@ public class AuthService : IAuthService
 
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveChangesAsync();
-
+        
         Task.Run(() => _emailService.SendWelcomeEmailAsync(user.Email, user.Username ?? user.Email));
 
         return true;
