@@ -1,5 +1,3 @@
-using Restaurante.AuthService.Domain.Entities;
-
 namespace Restaurante.AuthService.Application.Interfaces;
 
 /// <summary>

@@ -40,8 +40,6 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 // 3.2. Proveedores de Infraestructura (Detalles técnicos ocultos detrás de interfaces)
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
-// Usamos AddHttpClient porque MongoSyncService usa un HttpClient por dentro
-builder.Services.AddHttpClient<ISyncService, MongoSyncService>();
 
 // 3.3. Servicios de Aplicación (Casos de uso)
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -110,6 +108,7 @@ using (var scope = app.Services.CreateScope())
         try
         {
             logger.LogInformation($"Intentando conectar a AuthDB (Intento {retryCount + 1}/10)...");
+            context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
             
             await DataSeeder.SeedAsync(context, passwordHasher, configuration);

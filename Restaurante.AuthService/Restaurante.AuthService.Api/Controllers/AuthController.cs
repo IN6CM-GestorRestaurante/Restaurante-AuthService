@@ -123,8 +123,8 @@ public class AuthController : ControllerBase
     {
         try
         {
-            await _authService.RegisterAsync(request);
-            return StatusCode(201, new { success = true, message = "Usuario registrado. Revisa tu correo para verificar tu cuenta." });
+            var result = await _authService.RegisterAsync(request);
+            return StatusCode(201, result);
         }
         catch (InvalidOperationException ex)
         {

@@ -1,0 +1,424 @@
+{
+  "info": {
+    "_postman_id": "20902fae-9b57-4635-9218-e4a1bfb20a20",
+    "name": "Restaurante - Auth Service (C#)",
+    "description": "Colección para el microservicio de autenticación (C# .NET 8 + PostgreSQL).\nEndpoints: Register, Login, Refresh, Verify Email, Forgot/Reset Password, Validate, Users, Update Role.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48421810",
+    "_collection_link": "https://go.postman.co/collection/48421810-20902fae-9b57-4635-9218-e4a1bfb20a20?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Registro (Interno — usado por Node Orquestador)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@empresa.com\",\n  \"password\": \"Password123!\",\n  \"username\": \"adminempresa\",\n  \"companyMongoId\": \"{{ID_COMPANY}}\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/register",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Login (SUPER_ADMIN)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const json = pm.response.json();",
+              "    pm.environment.set('jwt_token', json.accessToken || '');",
+              "    pm.environment.set('refresh_token', json.refreshToken || '');",
+              "    if (json.userDetails) {",
+              "        pm.environment.set('AUTH_USER_ID', json.userDetails.id);",
+              "        pm.environment.set('AUTH_USER_ROLE', json.userDetails.role);",
+              "        if (json.userDetails.mongoId) pm.environment.set('ID_MONGO_USER', json.userDetails.mongoId);",
+              "    }",
+              "    pm.test('Login exitoso', () => pm.expect(json.success).to.be.true);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"emailOrUsername\": \"superadmin\",\n  \"password\": \"Admin1234!\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/login",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2.1 Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const json = pm.response.json();",
+              "    pm.environment.set('jwt_token', json.accessToken || '');",
+              "    pm.environment.set('refresh_token', json.refreshToken || '');",
+              "    if (json.userDetails) {",
+              "        pm.environment.set('AUTH_USER_ID', json.userDetails.id);",
+              "        pm.environment.set('AUTH_USER_ROLE', json.userDetails.role);",
+              "        if (json.userDetails.mongoId) pm.environment.set('ID_MONGO_USER', json.userDetails.mongoId);",
+              "    }",
+              "    pm.test('Login exitoso', () => pm.expect(json.success).to.be.true);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"emailOrUsername\": \"cmendoza\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/login",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2.2 Login Empleado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const json = pm.response.json();",
+              "    pm.environment.set('jwt_token', json.accessToken || '');",
+              "    pm.environment.set('refresh_token', json.refreshToken || '');",
+              "    if (json.userDetails) {",
+              "        pm.environment.set('AUTH_USER_ID', json.userDetails.id);",
+              "        pm.environment.set('AUTH_USER_ROLE', json.userDetails.role);",
+              "        if (json.userDetails.mongoId) pm.environment.set('ID_MONGO_USER', json.userDetails.mongoId);",
+              "    }",
+              "    pm.test('Login exitoso', () => pm.expect(json.success).to.be.true);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"emailOrUsername\": \"jperez\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/login",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Refresh Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const json = pm.response.json();",
+              "    pm.environment.set('jwt_token', json.accessToken || '');",
+              "    pm.environment.set('refresh_token', json.refreshToken || '');",
+              "    pm.test('Token refrescado', () => pm.expect(json.success).to.be.true);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/refresh",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "refresh"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Validar Token",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{auth_url}}/validate",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "validate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Verificar Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"cpcEDavKZyyd0Pj_FtbnGcaLrVOWNzhOdtVwxFFG88KcKAY1orgvPV0eqaLRO4zv\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/verify-email",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "verify-email"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Olvidé mi Contraseña",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@empresa.com\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/forgot-password",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "forgot-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Resetear Contraseña",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"TOKEN_DE_RESET\",\n  \"newPassword\": \"NuevaPassword123!\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/reset-password",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "reset-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Listar Usuarios (Auth)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{auth_url}}/users?page=1&limit=20",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. Actualizar Rol de Usuario",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"BRANCH_MANAGER\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_url}}/users/{{AUTH_USER_ID}}/role",
+          "host": [
+            "{{auth_url}}"
+          ],
+          "path": [
+            "users",
+            "{{AUTH_USER_ID}}",
+            "role"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "auth_url",
+      "value": "http://localhost:5065/api/v1/auth",
+      "description": "Base URL del Auth Service (ya incluye /api/v1/auth)"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "description": "Se auto-captura al hacer Login"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "description": "Se auto-captura al hacer Login"
+    }
+  ]
+}
