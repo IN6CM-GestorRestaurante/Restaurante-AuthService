@@ -24,4 +24,6 @@ public class RegisterDto
     public string? CompanyMongoId { get; set; }
     /// <summary>Rol del usuario (enviado por Node al crear empleados, default: COMPANY_ADMIN)</summary>
     public string? Role { get; set; }
+    /// <summary>ID de la sucursal (Branch) en MongoDB</summary>
+    public string? BranchMongoId { get; set; }
 }

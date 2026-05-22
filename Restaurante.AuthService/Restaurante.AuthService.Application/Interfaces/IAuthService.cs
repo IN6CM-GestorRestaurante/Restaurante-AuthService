@@ -13,7 +13,7 @@ public interface IAuthService
     Task<bool> ResetPasswordAsync(string token, string newPassword);
     
     // Métodos administrativos e introspección
-    Task<User?> ValidateUserAsync(int userId);
+    Task<User?> ValidateUserAsync(Guid userId);
     Task<(List<User> Users, int TotalCount)> GetUsersAsync(int page, int limit, string? companyMongoId = null);
-    Task<bool> UpdateUserRoleAsync(int userId, string newRole, string requesterRole, string? requesterCompanyId);
+    Task<bool> UpdateUserRoleAsync(Guid userId, string newRole, string requesterRole, string? requesterCompanyId);
 }

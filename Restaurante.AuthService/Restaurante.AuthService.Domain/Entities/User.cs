@@ -1,67 +1,34 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Restaurante.AuthService.Domain.Entities;
 
-    [Table("users")]
-    public class User
-    {
-        [Key]
-        [Column("id")]
-        public int Id { get; set; }
+public class User
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string Role { get; set; } = "WAITER"; // ADMIN, WAITER, CHEF, CASHIER
+    public bool IsActive { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [Required]
-        [Column("email")]
-        public string Email { get; set; } = string.Empty;
+    // Para mantener la relación con el perfil guardado en MongoDB (opcional ahora)
+    public string? MongoId { get; set; } 
 
-        [Required]
-        [Column("password_hash")]
-        public string PasswordHash { get; set; } = string.Empty;
+    // === Username (para login rápido sin email completo) ===
+    public string? Username { get; set; }
 
-        [Required]
-        [Column("role")]
-        public string Role { get; set; } = "WAITER"; // ADMIN, WAITER, CHEF, CASHIER
+    // === Email Verification ===
+    public bool EmailVerified { get; set; } = false;
+    public string? EmailVerificationToken { get; set; }
+    public DateTime? EmailVerificationTokenExpiry { get; set; }
 
-        [Column("is_active")]
-        public bool IsActive { get; set; } = false;
+    // === Password Reset ===
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetTokenExpiry { get; set; }
 
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // === Refresh Token ===
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiry { get; set; }
 
-        // Para mantener la relación con el perfil guardado en MongoDB
-        [Column("mongo_id")]
-        public string? MongoId { get; set; } 
-
-        // === Username (para login rápido sin email completo) ===
-        [Column("username")]
-        [MaxLength(50)]
-        public string? Username { get; set; }
-
-        // === Email Verification ===
-        [Column("email_verified")]
-        public bool EmailVerified { get; set; } = false;
-
-        [Column("email_verification_token")]
-        public string? EmailVerificationToken { get; set; }
-
-        [Column("email_verification_token_expiry")]
-        public DateTime? EmailVerificationTokenExpiry { get; set; }
-
-        // === Password Reset ===
-        [Column("password_reset_token")]
-        public string? PasswordResetToken { get; set; }
-
-        [Column("password_reset_token_expiry")]
-        public DateTime? PasswordResetTokenExpiry { get; set; }
-
-        // === Refresh Token ===
-        [Column("refresh_token")]
-        public string? RefreshToken { get; set; }
-
-        [Column("refresh_token_expiry")]
-        public DateTime? RefreshTokenExpiry { get; set; }
-
-        // === Tenant Link ===
-        [Column("company_mongo_id")]
-        public string? CompanyMongoId { get; set; }
-    }
+    // === Tenant Link ===
+    public string? CompanyMongoId { get; set; }
+    public string? BranchMongoId { get; set; }
+}
