@@ -90,6 +90,7 @@ public class AuthService : IAuthService
 
         var newUser = new User
         {
+            Id = Guid.NewGuid(),
             Email = registerDto.Email,
             Username = registerDto.Username,
             PasswordHash = _passwordHasher.Hash(registerDto.Password),
@@ -97,6 +98,7 @@ public class AuthService : IAuthService
             IsActive = false,
             EmailVerified = false,
             CompanyMongoId = registerDto.CompanyMongoId,
+            BranchMongoId = registerDto.BranchMongoId,
             MongoId = registerDto.MongoId,
             EmailVerificationToken = TokenGenerator.GenerateSecureToken(),
             EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
@@ -210,7 +212,7 @@ public class AuthService : IAuthService
         return true;
     }
 
-    public async Task<User?> ValidateUserAsync(int userId)
+    public async Task<User?> ValidateUserAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null || !user.IsActive) return null;
@@ -222,7 +224,7 @@ public class AuthService : IAuthService
         return await _userRepository.GetAllAsync(page, limit, companyMongoId);
     }
 
-    public async Task<bool> UpdateUserRoleAsync(int userId, string newRole, string requesterRole, string? requesterCompanyId)
+    public async Task<bool> UpdateUserRoleAsync(Guid userId, string newRole, string requesterRole, string? requesterCompanyId)
     {
         var allowedRoles = new[] { "SUPER_ADMIN", "COMPANY_ADMIN", "BRANCH_MANAGER", "WAITER", "CHEF", "CASHIER", "RECEPTIONIST", "CLIENT" };
         newRole = newRole.ToUpper(CultureInfo.InvariantCulture);

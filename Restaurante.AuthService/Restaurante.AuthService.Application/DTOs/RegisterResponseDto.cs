@@ -6,7 +6,7 @@ namespace Restaurante.AuthService.Application.DTOs;
 public class RegisterResponseDto
 {
     public bool Success { get; set; }
-    public int AuthUserId { get; set; }
+    public Guid AuthUserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
 }
