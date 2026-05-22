@@ -22,7 +22,7 @@ public class JwtProvider : IJwtProvider
         var jwtSettings = _configuration.GetSection("Jwt");
         var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
@@ -30,9 +30,19 @@ public class JwtProvider : IJwtProvider
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        if (!string.IsNullOrEmpty(user.CompanyMongoId))
+        {
+            claimsList.Add(new Claim("companyMongoId", user.CompanyMongoId));
+        }
+
+        if (!string.IsNullOrEmpty(user.BranchMongoId))
+        {
+            claimsList.Add(new Claim("branchMongoId", user.BranchMongoId));
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(claims),
+            Subject = new ClaimsIdentity(claimsList),
             Expires = DateTime.UtcNow.AddHours(8),
             Issuer = jwtSettings["Issuer"],
             Audience = jwtSettings["Audience"],
