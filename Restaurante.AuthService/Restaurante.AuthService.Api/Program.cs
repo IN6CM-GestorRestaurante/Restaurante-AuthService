@@ -25,7 +25,8 @@ builder.Services.AddCors(options =>
         var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
         policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials(); // Habilitar cookies trans-origen
     });
 });
 
@@ -60,6 +61,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var cookieToken = context.Request.Cookies["X-Auth-Token"];
+                if (!string.IsNullOrEmpty(cookieToken))
+                {
+                    context.Token = cookieToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -108,7 +122,7 @@ using (var scope = app.Services.CreateScope())
         try
         {
             logger.LogInformation($"Intentando conectar a AuthDB (Intento {retryCount + 1}/10)...");
-            context.Database.EnsureDeleted();
+            // context.Database.EnsureDeleted(); // COMENTADO: Evita borrar la DB en cada reinicio
             context.Database.EnsureCreated();
             
             await DataSeeder.SeedAsync(context, passwordHasher, configuration);

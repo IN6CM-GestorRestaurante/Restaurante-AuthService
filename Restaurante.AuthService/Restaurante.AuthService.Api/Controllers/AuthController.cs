@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Restaurante.AuthService.Application.DTOs;
 using Restaurante.AuthService.Application.Interfaces;
@@ -24,7 +25,7 @@ public class AuthController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
 
-        var user = await _authService.ValidateUserAsync(int.Parse(userIdClaim));
+        var user = await _authService.ValidateUserAsync(Guid.Parse(userIdClaim));
         if (user == null) return Unauthorized(new { success = false, message = "Usuario no encontrado o desactivado." });
 
         return Ok(new
@@ -88,7 +89,7 @@ public class AuthController : ControllerBase
     /// </summary>
     [Authorize]
     [HttpPut("users/{id}/role")]
-    public async Task<IActionResult> UpdateRole(int id, [FromBody] UpdateRoleDto request)
+    public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateRoleDto request)
     {
         var requesterRole = User.FindFirst("role")?.Value;
         var requesterCompanyId = User.FindFirst("companyMongoId")?.Value;
@@ -143,6 +144,7 @@ public class AuthController : ControllerBase
         try
         {
             var authResponse = await _authService.LoginAsync(request);
+            AppendAuthCookie(authResponse.AccessToken);
             return Ok(new
             {
                 success = true,
@@ -170,6 +172,7 @@ public class AuthController : ControllerBase
         try
         {
             var authResponse = await _authService.RefreshTokenAsync(request.RefreshToken);
+            AppendAuthCookie(authResponse.AccessToken);
             return Ok(new
             {
                 success = true,
@@ -233,5 +236,32 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { success = false, message = ex.Message });
         }
+    }
+
+    private void AppendAuthCookie(string tokenString)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,             // Bloquea exfiltración via XSS (document.cookie)
+            Secure = true,               // Obliga el uso estricto de HTTPS/TLS en red
+            SameSite = SameSiteMode.None,// Requerido por la naturaleza trans-origen dividida del ecosistema
+            Expires = DateTime.UtcNow.AddDays(1),
+            Path = "/",
+            IsEssential = true
+        };
+        Response.Cookies.Append("X-Auth-Token", tokenString, cookieOptions);
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("X-Auth-Token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
+        return Ok(new { success = true, message = "Sesión cerrada." });
     }
 }
