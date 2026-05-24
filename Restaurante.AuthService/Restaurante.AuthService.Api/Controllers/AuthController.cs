@@ -51,10 +51,10 @@ public class AuthController : ControllerBase
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int limit = 20)
     {
-        var role = User.FindFirst("role")?.Value;
+        var role = User.FindFirst("role")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
         var companyId = User.FindFirst("companyMongoId")?.Value;
 
-        if (role != "SUPER_ADMIN" && role != "COMPANY_ADMIN")
+        if (role != "SUPER_ADMIN" && role != "ADMIN_ROLE" && role != "COMPANY_ADMIN")
         {
             return Forbid();
         }
@@ -91,10 +91,10 @@ public class AuthController : ControllerBase
     [HttpPut("users/{id}/role")]
     public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateRoleDto request)
     {
-        var requesterRole = User.FindFirst("role")?.Value;
+        var requesterRole = User.FindFirst("role")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
         var requesterCompanyId = User.FindFirst("companyMongoId")?.Value;
 
-        if (requesterRole != "SUPER_ADMIN" && requesterRole != "COMPANY_ADMIN")
+        if (requesterRole != "SUPER_ADMIN" && requesterRole != "ADMIN_ROLE" && requesterRole != "COMPANY_ADMIN")
         {
             return Forbid();
         }

@@ -100,14 +100,14 @@ public class AuthService : IAuthService
             CompanyMongoId = registerDto.CompanyMongoId,
             BranchMongoId = registerDto.BranchMongoId,
             MongoId = registerDto.MongoId,
-            EmailVerificationToken = TokenGenerator.GenerateSecureToken(),
-            EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
+            VerificationOtp = TokenGenerator.GenerateNumericOtp(),
+            VerificationOtpExpiry = DateTime.UtcNow.AddMinutes(15)
         };
 
         await _userRepository.AddAsync(newUser);
         await _userRepository.SaveChangesAsync();
 
-        Task.Run(() => _emailService.SendEmailVerificationAsync(newUser.Email, newUser.Username ?? newUser.Email, newUser.EmailVerificationToken));
+        Task.Run(() => _emailService.SendEmailVerificationAsync(newUser.Email, newUser.Username ?? newUser.Email, newUser.VerificationOtp));
 
         return new RegisterResponseDto
         {
@@ -153,17 +153,17 @@ public class AuthService : IAuthService
 
     public async Task<bool> VerifyEmailAsync(string token)
     {
-        var user = await _userRepository.GetByEmailVerificationTokenAsync(token);
+        var user = await _userRepository.GetByVerificationOtpAsync(token);
 
-        if (user == null || user.EmailVerificationTokenExpiry < DateTime.UtcNow)
+        if (user == null || user.VerificationOtpExpiry < DateTime.UtcNow)
         {
-            throw new InvalidOperationException("Token inválido o expirado.");
+            throw new InvalidOperationException("Código OTP inválido o expirado.");
         }
 
         user.EmailVerified = true;
         user.IsActive = true;
-        user.EmailVerificationToken = null;
-        user.EmailVerificationTokenExpiry = null;
+        user.VerificationOtp = null;
+        user.VerificationOtpExpiry = null;
 
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveChangesAsync();
@@ -238,7 +238,7 @@ public class AuthService : IAuthService
         if (user == null) throw new InvalidOperationException("Usuario no encontrado.");
 
         // Solo SUPER_ADMIN puede asignar COMPANY_ADMIN
-        if (newRole == "COMPANY_ADMIN" && requesterRole != "SUPER_ADMIN")
+        if (newRole == "COMPANY_ADMIN" && requesterRole != "SUPER_ADMIN" && requesterRole != "ADMIN_ROLE")
         {
             throw new UnauthorizedAccessException("Solo un SUPER_ADMIN puede asignar el rol COMPANY_ADMIN.");
         }
