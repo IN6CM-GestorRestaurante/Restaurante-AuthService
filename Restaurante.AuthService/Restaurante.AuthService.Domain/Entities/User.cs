@@ -31,4 +31,14 @@ public class User
     // === Tenant Link ===
     public string? CompanyMongoId { get; set; }
     public string? BranchMongoId { get; set; }
+
+    // === Verification OTP ===
+    public string? VerificationOtp { get; set; }
+    public DateTime? VerificationOtpExpiry { get; set; }
+
+    public void UpdateVerificationOtp(string otp, DateTime expiry)
+    {
+        VerificationOtp = otp;
+        VerificationOtpExpiry = expiry;
+    }
 }
