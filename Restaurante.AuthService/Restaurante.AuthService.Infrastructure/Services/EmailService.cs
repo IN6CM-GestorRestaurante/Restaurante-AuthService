@@ -76,19 +76,20 @@ public class EmailService : IEmailService
 
     public async Task SendEmailVerificationAsync(string email, string username, string token)
     {
-        var frontendUrl = _configuration["AppSettings:FrontendUrl"];
-        var verifyUrl = $"{frontendUrl}/verify-email?token={token}";
-
         var htmlBody = $@"
-        <div style='font-family: Arial, sans-serif; padding: 20px;'>
-            <h2 style='color: #7c2d12;'>Verifica tu correo electrónico</h2>
-            <p>Hola {username},</p>
-            <p>Gracias por registrarte. Por favor verifica tu cuenta haciendo clic en el botón de abajo:</p>
-            <a href='{verifyUrl}' style='display: inline-block; padding: 10px 20px; background-color: #7c2d12; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 10px;'>Verificar Cuenta</a>
-            <p style='margin-top: 20px; font-size: 12px; color: #666;'>Si no solicitaste esta cuenta, puedes ignorar este correo.</p>
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;'>
+            <h2 style='color: #7c2d12; text-align: center;'>Verifica tu correo electrónico</h2>
+            <p>Hola <strong>{username}</strong>,</p>
+            <p>Gracias por registrarte en nuestra plataforma de administración de restaurantes. Para completar tu registro y activar tu cuenta, por favor introduce el siguiente código de verificación de 6 dígitos:</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <span style='display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #7c2d12; background-color: #fff7ed; border: 2px dashed #ffedd5; padding: 15px 30px; border-radius: 8px; font-family: monospace;'>{token}</span>
+            </div>
+            <p style='color: #4b5563; font-size: 14px;'>Este código de un solo uso (OTP) es válido por los próximos 15 minutos.</p>
+            <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;' />
+            <p style='font-size: 12px; color: #9ca3af; text-align: center;'>Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.</p>
         </div>";
 
-        await SendEmailAsync(email, "Verificación de cuenta - Restaurante", htmlBody);
+        await SendEmailAsync(email, "Código de Verificación de Cuenta", htmlBody);
     }
 
     public async Task SendPasswordResetAsync(string email, string username, string token)
