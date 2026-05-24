@@ -81,6 +81,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("branch_mongo_id")
             .HasMaxLength(64);
 
+        builder.Property(u => u.VerificationOtp)
+            .HasColumnName("verification_otp")
+            .HasMaxLength(6);
+
+        builder.Property(u => u.VerificationOtpExpiry)
+            .HasColumnName("verification_otp_expiry");
+
         builder.HasIndex(u => u.Email)  
             .IsUnique()  
             .HasDatabaseName("ix_users_email_unique");  
@@ -104,5 +111,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsUnique()
             .HasFilter("refresh_token IS NOT NULL")
             .HasDatabaseName("ix_users_refresh_token_unique");
+
+        builder.HasIndex(u => u.VerificationOtp)
+            .IsUnique()
+            .HasFilter("verification_otp IS NOT NULL")
+            .HasDatabaseName("ix_users_verification_otp_unique");
     }  
 }
