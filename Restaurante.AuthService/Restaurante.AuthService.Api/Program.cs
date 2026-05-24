@@ -122,8 +122,24 @@ using (var scope = app.Services.CreateScope())
         try
         {
             logger.LogInformation($"Intentando conectar a AuthDB (Intento {retryCount + 1}/10)...");
-            // context.Database.EnsureDeleted(); // COMENTADO: Evita borrar la DB en cada reinicio
             context.Database.EnsureCreated();
+            
+            // === EXECUTING AUTOMATED SCHEMA UPGRADE MIGRATION ===
+            logger.LogInformation("Verificando y aplicando migración atómica para OTP en PostgreSQL...");
+            context.Database.ExecuteSqlRaw(@"
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_otp VARCHAR(6);
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_otp_expiry TIMESTAMP WITH TIME ZONE;
+            ");
+            try 
+            {
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE UNIQUE INDEX IF NOT EXISTS ix_users_verification_otp_unique ON users (verification_otp) WHERE (verification_otp IS NOT NULL);
+                ");
+            }
+            catch (Exception exIndex)
+            {
+                logger.LogWarning($"No se pudo crear el índice único de OTP (posiblemente ya existe): {exIndex.Message}");
+            }
             
             await DataSeeder.SeedAsync(context, passwordHasher, configuration);
 
