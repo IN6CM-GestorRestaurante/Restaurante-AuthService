@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Restaurante.AuthService.Application.DTOs;
 using Restaurante.AuthService.Application.Interfaces;
+using Restaurante.AuthService.Application.DTOs;
 
 namespace Restaurante.AuthService.Api.Controllers;
 
@@ -217,6 +218,17 @@ public class AuthController : ControllerBase
     {
         await _authService.ForgotPasswordAsync(request.Email);
         return Ok(new { success = true, message = "Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña." });
+    }
+
+    /// <summary>
+    /// Reenvía el código OTP de verificación al correo proporcionado.
+    /// </summary>
+    [HttpPost("resend-verification")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationDto request)
+    {
+        await _authService.ResendVerificationOtpAsync(request.Email);
+        return Ok(new { success = true, message = "Si el correo está registrado, se ha reenviado el código de verificación." });
     }
 
     /// <summary>
