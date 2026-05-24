@@ -219,6 +219,26 @@ public class AuthService : IAuthService
         return user;
     }
 
+    public async Task<bool> ResendVerificationOtpAsync(string email)
+    {
+        var user = await _userRepository.GetByEmailAsync(email);
+
+        if (user == null)
+        {
+            return true;
+        }
+
+        var newOtp = TokenGenerator.GenerateNumericOtp();
+        user.UpdateVerificationOtp(newOtp, DateTime.UtcNow.AddMinutes(15));
+
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveChangesAsync();
+
+        Task.Run(() => _emailService.SendEmailVerificationAsync(user.Email, user.Username ?? user.Email, user.VerificationOtp));
+
+        return true;
+    }
+
     public async Task<(List<User> Users, int TotalCount)> GetUsersAsync(int page, int limit, string? companyMongoId = null)
     {
         return await _userRepository.GetAllAsync(page, limit, companyMongoId);
