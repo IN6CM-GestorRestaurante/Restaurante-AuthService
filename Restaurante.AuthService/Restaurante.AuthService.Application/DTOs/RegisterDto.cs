@@ -26,4 +26,8 @@ public class RegisterDto
     public string? Role { get; set; }
     /// <summary>ID de la sucursal (Branch) en MongoDB</summary>
     public string? BranchMongoId { get; set; }
+    public string? Name { get; set; }
+    public string? Surname { get; set; }
+    public string? Phone { get; set; }
+    public bool? IsActive { get; set; }
 }

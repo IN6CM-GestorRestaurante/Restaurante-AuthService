@@ -102,10 +102,13 @@ public class AuthService : IAuthService
             Id = Guid.NewGuid(),
             Email = registerDto.Email,
             Username = registerDto.Username,
+            Name = registerDto.Name,
+            Surname = registerDto.Surname,
+            Phone = registerDto.Phone,
             PasswordHash = _passwordHasher.Hash(registerDto.Password),
             Role = string.IsNullOrEmpty(registerDto.Role) ? "COMPANY_ADMIN" : registerDto.Role,
-            IsActive = false,
-            EmailVerified = false,
+            IsActive = registerDto.IsActive ?? false,
+            EmailVerified = registerDto.IsActive == true ? true : false,
             CompanyMongoId = registerDto.CompanyMongoId,
             BranchMongoId = registerDto.BranchMongoId,
             MongoId = registerDto.MongoId,
@@ -289,8 +292,7 @@ public class AuthService : IAuthService
         Guid userId,
         UpdateProfileDto dto,
         string requesterRole,
-        string? requesterCompanyId,
-        IPasswordHasher passwordHasher)
+        string? requesterCompanyId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
@@ -298,8 +300,8 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Usuario no encontrado.");
         }
 
-        // Si el solicitante es COMPANY_ADMIN, solo puede editar usuarios de su misma compañía
-        if (requesterRole == "COMPANY_ADMIN" && user.CompanyMongoId != requesterCompanyId)
+        // Si el solicitante es COMPANY_ADMIN, verificar que no edite usuarios de otra compañía diferente
+        if (requesterRole == "COMPANY_ADMIN" && !string.IsNullOrEmpty(user.CompanyMongoId) && !string.IsNullOrEmpty(requesterCompanyId) && !string.Equals(user.CompanyMongoId, requesterCompanyId, StringComparison.OrdinalIgnoreCase))
         {
             throw new UnauthorizedAccessException("No tienes permiso para modificar usuarios de otra compañía.");
         }
@@ -314,12 +316,15 @@ public class AuthService : IAuthService
         if (!string.IsNullOrEmpty(dto.Phone))
             user.Phone = dto.Phone;
 
+        if (dto.IsActive.HasValue)
+            user.IsActive = dto.IsActive.Value;
+
         if (!string.IsNullOrEmpty(dto.Username))
         {
             if (dto.Username != user.Username)
             {
                 var existingUser = await _userRepository.GetByUsernameAsync(dto.Username);
-                if (existingUser != null)
+                if (existingUser != null && existingUser.Id != user.Id)
                 {
                     throw new InvalidOperationException("El nombre de usuario ya está registrado.");
                 }
@@ -329,18 +334,13 @@ public class AuthService : IAuthService
 
         if (!string.IsNullOrEmpty(dto.Role))
         {
-            var allowedRoles = new[] { "SUPER_ADMIN", "COMPANY_ADMIN", "BRANCH_MANAGER", "WAITER", "CHEF", "CASHIER", "RECEPTIONIST", "CLIENT" };
+            var allowedRoles = new[] { "SUPER_ADMIN", "COMPANY_ADMIN", "BRANCH_MANAGER", "WAITER", "CHEF", "CASHIER", "RECEPTIONIST", "CLIENT", "ADMIN_ROLE" };
             var newRole = dto.Role.ToUpper(CultureInfo.InvariantCulture);
+            if (newRole == "ADMIN_ROLE") newRole = "COMPANY_ADMIN";
 
             if (!allowedRoles.Contains(newRole))
             {
                 throw new InvalidOperationException($"El rol '{newRole}' no es válido.");
-            }
-
-            // Solo SUPER_ADMIN puede asignar COMPANY_ADMIN
-            if (newRole == "COMPANY_ADMIN" && requesterRole != "SUPER_ADMIN" && requesterRole != "ADMIN_ROLE")
-            {
-                throw new UnauthorizedAccessException("Solo un SUPER_ADMIN puede asignar el rol COMPANY_ADMIN.");
             }
 
             user.Role = newRole;
@@ -348,7 +348,7 @@ public class AuthService : IAuthService
 
         if (!string.IsNullOrEmpty(dto.Password))
         {
-            user.PasswordHash = passwordHasher.Hash(dto.Password);
+            user.PasswordHash = _passwordHasher.Hash(dto.Password);
         }
 
         await _userRepository.UpdateAsync(user);

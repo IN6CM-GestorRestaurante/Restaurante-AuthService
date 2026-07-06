@@ -25,4 +25,6 @@ public class UpdateProfileDto
     /// <summary>Nueva contraseña (opcional). Si se omite o es vacía, no se cambia.</summary>
     [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
     public string? Password { get; set; }
+
+    public bool? IsActive { get; set; }
 }

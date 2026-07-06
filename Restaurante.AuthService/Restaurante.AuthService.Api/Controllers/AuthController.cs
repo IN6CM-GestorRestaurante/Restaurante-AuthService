@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Restaurante.AuthService.Application.DTOs;
 using Restaurante.AuthService.Application.Interfaces;
-using Restaurante.AuthService.Application.DTOs;
 
 namespace Restaurante.AuthService.Api.Controllers;
 
@@ -36,6 +35,10 @@ public class AuthController : ControllerBase
             {
                 id = user.Id,
                 email = user.Email,
+                username = user.Username,
+                name = user.Name,
+                surname = user.Surname,
+                phone = user.Phone,
                 role = user.Role,
                 isActive = user.IsActive,
                 emailVerified = user.EmailVerified,
@@ -55,12 +58,12 @@ public class AuthController : ControllerBase
         var role = User.FindFirst("role")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
         var companyId = User.FindFirst("companyMongoId")?.Value;
 
-        if (role != "SUPER_ADMIN" && role != "ADMIN_ROLE" && role != "COMPANY_ADMIN")
+        if (role != "SUPER_ADMIN" && role != "ADMIN_ROLE" && role != "COMPANY_ADMIN" && role != "ADMIN")
         {
             return Forbid();
         }
 
-        string? filterCompanyId = role == "COMPANY_ADMIN" ? companyId : null;
+        string? filterCompanyId = (role == "COMPANY_ADMIN" || role == "ADMIN" || role == "ADMIN_ROLE") ? companyId : null;
 
         var (users, totalCount) = await _authService.GetUsersAsync(page, limit, filterCompanyId);
 
@@ -72,6 +75,9 @@ public class AuthController : ControllerBase
                 u.Id,
                 u.Email,
                 u.Username,
+                u.Name,
+                u.Surname,
+                u.Phone,
                 u.Role,
                 u.IsActive,
                 u.EmailVerified,
@@ -86,6 +92,36 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Actualiza perfil, rol o estado de un usuario.
+    /// </summary>
+    [Authorize]
+    [HttpPut("users/{id}")]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateProfileDto request)
+    {
+        var requesterRole = User.FindFirst("role")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+        var requesterCompanyId = User.FindFirst("companyMongoId")?.Value;
+
+        if (requesterRole != "SUPER_ADMIN" && requesterRole != "ADMIN_ROLE" && requesterRole != "COMPANY_ADMIN" && requesterRole != "ADMIN")
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            await _authService.UpdateUserProfileAsync(id, request, requesterRole!, requesterCompanyId);
+            return Ok(new { success = true, message = "Usuario actualizado exitosamente." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { success = false, message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Actualiza el rol de un usuario.
     /// </summary>
     [Authorize]
@@ -95,7 +131,7 @@ public class AuthController : ControllerBase
         var requesterRole = User.FindFirst("role")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
         var requesterCompanyId = User.FindFirst("companyMongoId")?.Value;
 
-        if (requesterRole != "SUPER_ADMIN" && requesterRole != "ADMIN_ROLE" && requesterRole != "COMPANY_ADMIN")
+        if (requesterRole != "SUPER_ADMIN" && requesterRole != "ADMIN_ROLE" && requesterRole != "COMPANY_ADMIN" && requesterRole != "ADMIN")
         {
             return Forbid();
         }
